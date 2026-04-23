@@ -11,6 +11,8 @@ import torch.nn as nn
 
 # 定义一个全局常量，表示向量的大小
 VECTOR_SIZE = 10
+# 定义一个全局常量，表示RNN的隐藏状态的维度
+HIDDEN_SIZE = 128
 
 
 class CustomModel(nn.Module):
@@ -19,10 +21,10 @@ class CustomModel(nn.Module):
         初始化一个自定义的模型
         """
         super(CustomModel, self).__init__()
-
-        # 增加一个线性层，对输入数据做线性变换：y=Ax+b，输入样本大小为VECTOR_SIZE，输出样本大小为 VECTOR_SIZE
-        self.linear = nn.Linear(VECTOR_SIZE, VECTOR_SIZE)
-
+        # 使用RNN的网络结构，默认使用 tanh 激活函数
+        self.rnn = nn.RNN(VECTOR_SIZE, HIDDEN_SIZE, nonlinearity='tanh', batch_first=True)
+        # 增加一个线性层作为输出层
+        self.linear = nn.Linear(HIDDEN_SIZE, VECTOR_SIZE)
         # 损失函数使用交叉熵损失函数来处理分类任务
         self.loss = nn.CrossEntropyLoss()
 
@@ -32,7 +34,8 @@ class CustomModel(nn.Module):
         :param x: 输入向量
         :return: 返回预测结果
         """
-        return self.linear(x)
+        out_tun, _ = self.rnn(x)
+        return self.linear(out_tun[:, -1, :])
 
 
 def build_single_sample():
@@ -74,7 +77,7 @@ def evaluate(model, test_sample_num):
     print(f"当前为'{VECTOR_SIZE}'维向量，本次预测集中各类别数量: {dict(zip(keys, counts.tolist()))}")
     correct, wrong = 0, 0
     with torch.no_grad():
-        y_forecast = model(x)
+        y_forecast = model(x.unsqueeze(1))
         for y_p, y_t in zip(y_forecast, y):
             if y_p.argmax() == y_t:
                 correct += 1
@@ -86,10 +89,10 @@ def evaluate(model, test_sample_num):
 
 
 def main():
-    epoch_num = 50  # 训练轮数
-    batch_size = 20  # 每次训练样本个数
+    epoch_num = 100  # 训练轮数
+    batch_size = 200  # 每次训练样本个数
     train_sample = 7000  # 每轮训练总共训练的样本总数
-    learning_rate = 0.01  # 学习率
+    learning_rate = 0.001  # 学习率
     log = []
 
     # 建立模型
@@ -109,6 +112,9 @@ def main():
             y = train_y[batch_index * batch_size: (batch_index + 1) * batch_size]
 
             # 前向传播，输出预测值
+            # 把一个(batch_size, input_size)类型的张量转成(batch_size, 1, input_size)
+            # 因为RNN需要接受一个[batch_size, time_step, feature]类型的张量
+            x = x.unsqueeze(1)
             y_forecast = model(x)
 
             # 计算损失，输出损失值
