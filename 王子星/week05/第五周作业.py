@@ -317,5 +317,3 @@ if __name__ == '__main__':
     generate_word = input()
     sents = generate_word.split()
     generate_text(sents)
-
-
