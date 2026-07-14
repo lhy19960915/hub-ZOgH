@@ -97,8 +97,6 @@ function_call_mcp_cli/
 │   ├── raw_pdf/                      # PDF源文件
 │   ├── parsed/                       # 解析后文本
 │   └── chunks/                       # 语义分块结果
-├── scripts/
-│   └── copy_data.py                  # 向量索引复制脚本
 ├── output/                           # 对比结果输出
 │   └── compare_result.md             # 自动生成的对比报告
 ├── compare.py                        # 三方式对比运行器
@@ -106,7 +104,6 @@ function_call_mcp_cli/
 ├── requirements.txt                  # 项目依赖
 ├── ARCHITECTURE.md                   # 架构设计文档
 ├── USAGE_GUIDE.md                    # 使用指南
-├── RESUME_GUIDE.md                   # 简历指导
 └── README.md                         # 本文件
 ```
 
